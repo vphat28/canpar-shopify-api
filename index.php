@@ -15,9 +15,9 @@ ini_set("display_errors","1");
 $url = $_SERVER['SERVER_NAME'];
 
 if(strpos($url, 'loomis') === FALSE) {
-    define('GATEWAY_BRAND', 'loomis');
-} else {
     define('GATEWAY_BRAND', 'canpar');
+} else {
+    define('GATEWAY_BRAND', 'loomis');
 }
  
 
