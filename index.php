@@ -12,7 +12,14 @@ ini_set("display_startup_errors","1");
 
 ini_set("display_errors","1");
 
-$__GET = $_GET;
+$url = $_SERVER['SERVER_NAME'];
+
+if(strpos($url, 'loomis') === FALSE) {
+    define('GATEWAY_BRAND', 'loomis');
+} else {
+    define('GATEWAY_BRAND', 'canpar');
+}
+ 
 
 $uri = isset($_SERVER['REQUEST_URI']) ?  $_SERVER['REQUEST_URI'] : '';
 
@@ -34,6 +41,6 @@ require_once __DIR__ . "/lib/processor.php";
 
 $processor = new processor;
 
-$processor->setOriginalGet($__GET);
+$processor->setOriginalGet($_GET);
 
 $processor->run();

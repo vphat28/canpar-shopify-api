@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<style>
+body {
+ font-family: Roboto, sans-serif;
+ margin: 0;
+}
+#big_div {
+  width: 40%;
+  margin: 0 auto;
+  min-height: 20px;
+  padding: 19px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+}
+.form-control {
+    display: block;
+    margin: 10px 5px;
+    width: 70%;
+    height: 24px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+label {
+    display: inline-block;
+    max-width: 100%;
+    margin: 5px;
+    font-weight: 500;
+    font-size: 1.1em;
+}
+
+.btn-success:active, .btn-success.active, .open>.dropdown-toggle.btn-success {
+    background-image: none;
+}
+
+.btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active, .open>.dropdown-toggle.btn-success {
+    color: #fff;
+    background-color: #449d44;
+    border-color: #398439;
+}
+.btn:active, .btn.active {
+    background-image: none;
+    outline: 0;
+    -webkit-box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+    box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+}
+.btn:hover, .btn:focus {
+    color: #333;
+    text-decoration: none;
+}
+button, html input[type=button], input[type=reset], input[type=submit] {
+    -webkit-appearance: button;
+    cursor: pointer;
+}
+.btn {
+    font-size: 12px;
+}
+.btn-success {
+    color: #fff;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+}
+.btn {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+} 
+.install-image{
+    width: 95%;
+    padding: 20px 5px;
+   }
+</style>
+<body>
+   <div style="background-color: #333;">
+      <div class="container" style="padding:5px;">
+         <p >
+            <h2 style="text-align:center;color:#fff;">Welcome to Loomis-Shopify App</h2>
+            <h4 style="text-align:center;color:#fff;">Provided by Collins-Harper</h4>
+            <div style="width: 140px; margin:auto;"><img src="/images/white-logo135x60.png" /></div>
+         </p>
+      </div>
+  </div>
+  <div id="big_div">
+
+    <h2 style="text-align:center">Welcome to Loomis-Shopify App</h2>
+    <p>
+       <span ><img src="/images/header_bg_express.png"  /></span>    
+    </p>    
+   <form method="get" action="/mode/install">
+      <label for="shopifyshop">Please enter your Shopify Name to Begin Installation</label>
+      <input id="shop" type="text" name="shop" class="form-control" />
+      <input type="submit" value="Login" class="btn btn-success">
+   </form>
+   <p>
+       <div style="width: 30%; margin: auto" ><img src="/images/shopify.jpg"  style="width: 70%;" /></div>
+    </p>
+  </div>
+  <div id="big_div">
+    <h2 style="text-align:center">Loomis Shopify Documentation</h2>
+    <p>Installation</p>
+    <ol>
+	<li>Visit app landing page https://loomisapi01.collinsharper.com/</li>
+	<li>Put your Shopify store URL in this field: “Please enter your Shopify Name to Begin Installation” (i.e. my-store.myshopify.com - replace my-store with your store name.)<br>
+* Note that this store URL should not contain https:// or www or any other extra characters.</li>
+	<li>Submit the form by pressing <b>Login</b> button.<br><img class="install-image" src="/images/Step3.PNG" /></li>
+        <li>Once the form is submitted, you will be redirected either to Shopify login page for your Store or the App Installation Confirmation page as seen on the next page. If you are on the login page, log in using your Shopify store admin credentials. Once you are logged in, you will be redirected to App Installation Confirmation page. Please read the installation information and move on to the next step in the process by clicking <b><u>“Install unlisted app”</u></b> button.<br><img class="install-image" src="/images/Step4.PNG" /></li>
+        <li>You will be redirected to Loomis API Registration Page. This is where you will register your Loomis API credentials that are supplied by Loomis with the App. Please note that you must use the exact Store name as seen in Shopify admin Settings:General (as seen in screenshot below, i.e. My Test Store.)<br><br><img class="install-image" src="/images/step5.PNG" />Once you have filled out the Registration, the screen should look like this (see screenshot below.) When you are certain that the information supplied is correct, submit the form by clicking <b>“LOGIN”</b> button. Shopify will complete the installation process for you.<br><img class="install-image" src="/images/Step5b.PNG" /></li>
+        <li>Once the installation is complete, you will be redirected to your Shopify Store. To confirm the installation was a success, log into your Shopify store admin panel. Under Settings>>Shipping,  in subsection <b>Shipping rates at checkout</b>, you should see Loomis Shipping as depicted in screenshot below.<br><img class="install-image" src="/images/Step6.PNG" /></li>
+        <li>Congratulations you have completed the installation of the app! To test it, try placing a couple of test orders and the shipping services available to your Loomis account should be automatically presented at the checkout page.</li>
+    </ol>
+  </div>
+ /body>
+</html>

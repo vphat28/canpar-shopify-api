@@ -8,10 +8,9 @@ call_back_path = /?mode=call_back
  */
 class processor extends stdClass
 {
-
-
     const SHOPIFY_BASE_URL = ".myshopify.com";
     const USER_AGENT = "CH Canpar Shopify Php v1.4";
+    const LOOMIS_USER_AGENT = "CH Loomis Shopify Php v1.4";
     const ACCESS_MODE = "per-user";
 
     const AES_METHOD = "AES-128-ECB";
@@ -21,6 +20,9 @@ class processor extends stdClass
 
     const URI_RATING_SANDBOX = "https://sandbox.canpar.com/canshipws/services/CanparRatingService";
     const URI_RATING_PROD = "https://canship.canpar.com/canshipws/services/CanparRatingService";
+
+    const LOOMIS_URI_RATING_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSRatingService";
+    const LOOMIS_URI_RATING_PROD = "https://loomis-express.com/axis2/services/USSRatingService";
 
 
     protected $__get;
@@ -77,7 +79,11 @@ class processor extends stdClass
 
     protected function getEndpoint()
     {
-        return $this->getConfig('test_mode') ? self::URI_RATING_SANDBOX : self::URI_RATING_PROD;
+        if (GATEWAY_BRAND === 'loomis') {
+            return $this->getConfig('test_mode') ? self::LOOMIS_URI_RATING_SANDBOX : self::LOOMIS_URI_RATING_PROD;
+        } else {
+            return $this->getConfig('test_mode') ? self::URI_RATING_SANDBOX : self::URI_RATING_PROD;
+        }
     }
     protected function getConfig($x)
     {
@@ -359,7 +365,11 @@ class processor extends stdClass
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
         // curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 3);
         // curl_setopt($curl, CURLOPT_SSLVERSION, 3);
-        curl_setopt($curl, CURLOPT_USERAGENT, self::USER_AGENT);
+        if (GATEWAY_BRAND === 'loomis') {
+            curl_setopt($curl, CURLOPT_USERAGENT, self::LOOMIS_USER_AGENT);
+        } else {
+            curl_setopt($curl, CURLOPT_USERAGENT, self::USER_AGENT);
+        }
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
@@ -441,7 +451,12 @@ class processor extends stdClass
             }
         }
 
-        $templateInclude = $this->_config['BASE_PATH'] . DS . $this->_config['template_path'] . DS . $file;
+        if (GATEWAY_BRAND === 'loomis') {
+            $templateInclude = $this->_config['BASE_PATH'] . DS . $this->_config['template_path'] . DS . 'loomis' . DS . $file;
+        } else {
+            $templateInclude = $this->_config['BASE_PATH'] . DS . $this->_config['template_path'] . DS . $file;
+        }
+
         ob_start();
 
         include($templateInclude);
