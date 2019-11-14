@@ -225,8 +225,8 @@ class processor extends stdClass
         $params = $this->__get; // Retrieve all request parameters
         $hmac = $_GET['hmac']; // Retrieve HMAC request parameter
         $params = array_diff_key($params, array('hmac' => '')); // Remove hmac from params
-        $params = array_diff_key($params, array('mode' => '')); // Remove mode from params
-
+        $params = array_diff_key($params, array('mode' => '')); // Remove hmac from params
+ 
         ksort($params); // Sort params lexographically
 
         $computed_hmac = hash_hmac('sha256', http_build_query($params), $this->getConfig('shared_secret'));
