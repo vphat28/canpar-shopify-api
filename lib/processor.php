@@ -225,6 +225,7 @@ class processor extends stdClass
         $params = $this->__get; // Retrieve all request parameters
         $hmac = $_GET['hmac']; // Retrieve HMAC request parameter
         $params = array_diff_key($params, array('hmac' => '')); // Remove hmac from params
+        $params = array_diff_key($params, array('mode' => '')); // Remove mode from params
 
         ksort($params); // Sort params lexographically
 
