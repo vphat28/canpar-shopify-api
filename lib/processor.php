@@ -22,7 +22,7 @@ class processor extends stdClass
     const URI_RATING_PROD = "https://canship.canpar.com/canshipws/services/CanparRatingService";
 
     const LOOMIS_URI_RATING_SANDBOX = "https://sandbox.loomis-express.com/axis2/services/USSRatingService";
-    const LOOMIS_URI_RATING_PROD = "https://loomis-express.com/axis2/services/USSRatingService";
+    const LOOMIS_URI_RATING_PROD = "https://webservice.loomis-express.com/LShip/services/USSRatingService?wsdl";
 
 
     protected $__get;
@@ -40,6 +40,13 @@ class processor extends stdClass
         'G' => 'CANPAR U.S.A. PAK',
         'H' => 'CANPAR SELECT U.S.A.' ,
         'I' => 'CANPAR INTERNATIONAL');
+
+    protected $_referenceSerivceLoomisArray = array(
+        'DD' => 'LOOMIS GROUND',
+        'DA' => 'LOOMIS U.S.A.',
+        'DN' => 'LOOMIS SELECT LETTER',
+        'DE' => 'LOOMIS EXPRESS PAK',
+        );
 
     protected $_referenceSerivceArray2 = array(
         '1' => 'canpar_1',
@@ -226,7 +233,7 @@ class processor extends stdClass
         $hmac = $_GET['hmac']; // Retrieve HMAC request parameter
         $params = array_diff_key($params, array('hmac' => '')); // Remove hmac from params
         $params = array_diff_key($params, array('mode' => '')); // Remove hmac from params
- 
+
         ksort($params); // Sort params lexographically
 
         $computed_hmac = hash_hmac('sha256', http_build_query($params), $this->getConfig('shared_secret'));
@@ -256,14 +263,28 @@ class processor extends stdClass
             // Show the access token (don't do this in production!)
             if($access_token) {
                 $shop = str_replace(self::SHOPIFY_BASE_URL,"", $params['shop']);
-                $data = array(
-                    'carrier_service' => array(
-                        'name' => 'Canpar',
-                        'callback_url' => $this->_config['base_url'] . $this->_config['call_back_path'], // 'http://reeceburdevsite.com/shopifyapp.php',
-                        'email' => $this->_config['email'],
-                        'service_discovery' => true
-                    ),
-                );
+
+                if (GATEWAY_BRAND === 'loomis') {
+                    $this->log(" we have loomis access token $access_token");
+                    $data = array(
+                        'carrier_service' => array(
+                            'name' => 'Loomis',
+                            'callback_url' => $this->_config['base_url'] . $this->_config['call_back_path'], // 'http://reeceburdevsite.com/shopifyapp.php',
+                            'email' => $this->_config['email'],
+                            'service_discovery' => true
+                        ),
+                    );
+                } else {
+                    $this->log(" we have canpar access token $access_token");
+                    $data = array(
+                        'carrier_service' => array(
+                            'name' => 'Canpar',
+                            'callback_url' => $this->_config['base_url'] . $this->_config['call_back_path'], // 'http://reeceburdevsite.com/shopifyapp.php',
+                            'email' => $this->_config['email'],
+                            'service_discovery' => true
+                        ),
+                    );
+                }
 
 
                 // TODO What is carrier for; we are not using it?
@@ -394,6 +415,7 @@ class processor extends stdClass
 
         // Send request to Shopify and capture any errors
         $response = curl_exec($curl);
+        $this->log(__METHOD__ . __LINE__ . " api response ". $response);
         $error_message = curl_error($curl);
         // Close cURL to be nice
         curl_close($curl);
@@ -594,6 +616,84 @@ class processor extends stdClass
 	   </soap:Body>
 	</soap:Envelope>';
 
+        return $xml_data;
+
+    }
+
+    function loomis_api_all_service_rate($userCred,$delivery_address,$pickup_address,$package) {
+        $date = date('Ymd');
+        $total_weight = $package['weight'];
+
+        $xml_data = '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:ws="http://ws.rating.uss.transforce.ca" xmlns:xsd="http://dto.uss.transforce.ca/xsd" xmlns:xsd1="http://dto.uss.transforce.ca/xsd">
+	   <soap:Header/>
+	   <soap:Body>
+	      <ws:getRates>
+	         <ws:request>
+	            <xsd:password>'.$userCred['password'].'</xsd:password>
+	            <xsd:shipment>
+	             
+	              
+	                   <xsd1:delivery_address_line_1>'.$delivery_address['address1'] .'</xsd1:delivery_address_line_1>
+	               <xsd1:delivery_city>'.$delivery_address['city'] .'</xsd1:delivery_city>
+	               <xsd1:delivery_country>'.$delivery_address['country'] .'</xsd1:delivery_country> 
+	               <xsd1:delivery_name>Test</xsd1:delivery_name>
+	               <xsd1:delivery_postal_code>'.$delivery_address['postalcode'] .'</xsd1:delivery_postal_code>
+	               <xsd1:delivery_province>'.$delivery_address['province'] .'</xsd1:delivery_province>
+               <xsd1:dimension_unit>I</xsd1:dimension_unit>
+               <xsd1:packages>
+                  <xsd1:reported_weight>'. $total_weight .'</xsd1:reported_weight>
+               </xsd1:packages>
+              
+              
+                  <xsd1:pickup_address_line_1>'.$pickup_address['address1'] .'</xsd1:pickup_address_line_1>
+	               <xsd1:pickup_city>'.$pickup_address['city'] .'</xsd1:pickup_city> 
+	               <xsd1:pickup_name>Test</xsd1:pickup_name>
+	               <xsd1:pickup_postal_code>'.$pickup_address['postalcode'] .'</xsd1:pickup_postal_code>
+	               <xsd1:pickup_province>'.$pickup_address['province'] .'</xsd1:pickup_province>
+              
+               <xsd1:reported_weight_unit>L</xsd1:reported_weight_unit>
+               <xsd1:service_type>ALL</xsd1:service_type>
+               <xsd1:shipper_num>'.$userCred['shipper_number'].'</xsd1:shipper_num>
+               <xsd1:shipping_date>'. $date .' </xsd1:shipping_date>
+	               
+	            </xsd:shipment>
+	            <xsd:user_id>'.$userCred['user_id'].'</xsd:user_id>
+	         </ws:request>
+	      </ws:getRates>
+	   </soap:Body>
+	</soap:Envelope>';
+$xml_data = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ws="http://ws.rating.uss.transforce.ca" xmlns:xsd="http://ws.rating.uss.transforce.ca/xsd" xmlns:xsd1="http://dto.uss.transforce.ca/xsd">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ws:getRates>
+         <ws:request>
+            <xsd:password>'.$userCred['password'].'</xsd:password>
+            <xsd:shipment>
+               <xsd1:delivery_address_line_1>'.$delivery_address['address1'] .'</xsd1:delivery_address_line_1>
+               <xsd1:delivery_city>'.$delivery_address['city'] .'</xsd1:delivery_city>
+               <xsd1:delivery_country>'.$delivery_address['country'] .'</xsd1:delivery_country>
+               <xsd1:delivery_name>Test</xsd1:delivery_name>
+               <xsd1:delivery_postal_code>'.$delivery_address['postalcode'] .'</xsd1:delivery_postal_code>
+               <xsd1:delivery_province>'.$delivery_address['province'] .'</xsd1:delivery_province>
+               <xsd1:dimension_unit>I</xsd1:dimension_unit>
+               <xsd1:packages>
+                  <xsd1:reported_weight>'. $total_weight .'</xsd1:reported_weight>
+               </xsd1:packages>
+               <xsd1:pickup_address_line_1>'.$pickup_address['address1'] .'</xsd1:pickup_address_line_1>
+               <xsd1:pickup_city>'.$pickup_address['city'] .'</xsd1:pickup_city>
+               <xsd1:pickup_name>test</xsd1:pickup_name>
+               <xsd1:pickup_postal_code>'.$pickup_address['postalcode'] .'</xsd1:pickup_postal_code>
+               <xsd1:pickup_province>'.$pickup_address['province'] .'</xsd1:pickup_province>
+               <xsd1:reported_weight_unit>L</xsd1:reported_weight_unit>
+               <xsd1:service_type>ALL</xsd1:service_type>
+               <xsd1:shipper_num>'.$userCred['shipper_number'].'</xsd1:shipper_num>
+               <xsd1:shipping_date>'.$date.'</xsd1:shipping_date>
+            </xsd:shipment>
+            <xsd:user_id>'.$userCred['user_id'].'</xsd:user_id>
+         </ws:request>
+      </ws:getRates>
+   </soapenv:Body>
+</soapenv:Envelope>';
         return $xml_data;
 
     }
@@ -802,59 +902,8 @@ class processor extends stdClass
         return null;
     }
 
-    function canpar_api_call($shipping_information)
+    function get_rate_from_service_item_canpar($servicesArray)
     {
-
-
-        $this->log(__METHOD__ . __LINE__  . '-servicecall' . print_r($shipping_information, true));
-
-        $pickup_address = $this->canpar_shipping_origin($shipping_information);
-        $delivery_address = $this->canpar_shipping_destination($shipping_information);
-        $package = $this->canpar_shipping_package($shipping_information);
-        // TODO is this sound for getting the store name?
-        $userCred = $this->getUserCredentials($shipping_information['rate']['origin']['company_name']);
-
-        $this->log(__METHOD__ . __LINE__ . '-usercred' .  print_r($userCred, true));
-        $this->log(__METHOD__ . __LINE__ . '-delivery_address' . print_r($delivery_address, true));
-        $this->log(__METHOD__ . __LINE__ . '-pickup_address' . print_r($pickup_address, true));
-
-        $xml_data = $this->can_api_all_service_rate($userCred, $delivery_address, $pickup_address,$package);
-
-
-        $this->log(__METHOD__ . __LINE__  . '-rates' . print_r($xml_data, true));
-
-        $URL = $this->getEndpoint();
-
-        $ch = curl_init($URL);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/soap+xml charset=ISO-8859-1'));
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "$xml_data");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($ch);
-        $error_number = curl_errno($ch);
-        $error_message = curl_error($ch);
-
-        $this->log(__METHOD__ . __LINE__ ." response ". print_r($response,1));
-        // Return an error is cURL has a problem
-        if( $error_message ) {
-            $this->log(__METHOD__ . " Error ". print_r($response,1));
-
-            return array('error_message' => $error_message);
-        }
-
-        curl_close($ch);
-
-        $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $response);
-        $this->log(__METHOD__ . " APi response ". print_r($response,1));
-        $xml = new SimpleXMLElement($response);
-        $body = $xml->xpath('//ax25processShipmentResult');
-        $servicesArray = json_decode(json_encode((array)$body), TRUE);
-
-        $this->log(__METHOD__ . __LINE__  . ' -serviceresponse body ' . print_r($body, true));
-        $this->log(__METHOD__ . __LINE__  . ' -serviceresponse ' . print_r($response, true));
-        $this->log(__METHOD__ . __LINE__  . ' -serviceresponseArray ' . print_r($servicesArray, true));
-
-
         $rateArray = array();
 
         foreach($servicesArray as $service) {
@@ -891,6 +940,135 @@ class processor extends stdClass
             }
         }
 
+        return $rateArray;
+    }
+
+    function get_rate_from_service_item_loomis($servicesArray)
+    {
+        $rateArray = array();
+
+        foreach($servicesArray as $service) {
+
+            $this->log(__METHOD__ . __LINE__  . ' -service item ' . print_r($service, true));
+            $serviceCode = $this->getItemByRelativeKey($service, 'shipment');
+            $deliverydate = $this->getItemByRelativeKey($serviceCode, 'estimated_delivery_date');
+            $shipmentInfo = $this->getItemByRelativeKey($serviceCode, 'shipment_info_num');
+
+            if (empty($shipmentInfo)) {
+                continue;
+            }
+
+            $cost = '';
+
+            foreach ($shipmentInfo as $info) {
+                $infoName = $this->getItemByRelativeKey($info, 'name');
+
+                if ($infoName === 'TOTAL_CHARGE') {
+                    $cost = $this->getItemByRelativeKey($info, 'value');
+                }
+            }
+
+            $on_min_date = date(self::DATE_FORMAT , strtotime($deliverydate));
+            $on_max_date = date(self::DATE_FORMAT , strtotime($deliverydate));
+
+            $serviceType = false;
+
+            if (!empty($this->getItemByRelativeKey($serviceCode, 'service_type'))) {
+                $serviceType = $this->getItemByRelativeKey($serviceCode, 'service_type');
+            }
+
+            if( intval($cost) > 0 && isset($this->_referenceSerivceLoomisArray[$serviceType])) {
+                $cost = $cost * 100;
+                //$serviceRateArray = array(
+                $mergeArray = array(
+                    'service_name' => $this->_referenceSerivceLoomisArray[$serviceType],
+                    'service_code' => 'loomis_'. $serviceType,
+                    'total_price' => $cost,
+                    'currency' => 'CAD',
+                    'min_delivery_date' => $on_min_date,
+                    'max_delivery_date' => $on_max_date
+                );
+
+                array_push($rateArray , $mergeArray);
+            }
+        }
+
+        return $rateArray;
+    }
+
+    function canpar_api_call($shipping_information)
+    {
+
+
+        $this->log(__METHOD__ . __LINE__  . '-servicecall' . print_r($shipping_information, true));
+
+        $pickup_address = $this->canpar_shipping_origin($shipping_information);
+        $delivery_address = $this->canpar_shipping_destination($shipping_information);
+        $package = $this->canpar_shipping_package($shipping_information);
+        // TODO is this sound for getting the store name?
+        $userCred = $this->getUserCredentials($shipping_information['rate']['origin']['company_name']);
+
+        $this->log(__METHOD__ . __LINE__ . '-usercred' .  print_r($userCred, true));
+        $this->log(__METHOD__ . __LINE__ . '-delivery_address' . print_r($delivery_address, true));
+        $this->log(__METHOD__ . __LINE__ . '-pickup_address' . print_r($pickup_address, true));
+
+        if (GATEWAY_BRAND === 'loomis') {
+            $xml_data = $this->loomis_api_all_service_rate($userCred, $delivery_address, $pickup_address, $package);
+        } else {
+            $xml_data = $this->can_api_all_service_rate($userCred, $delivery_address, $pickup_address, $package);
+        }
+
+        $this->log(__METHOD__ . __LINE__  . '-rates' . print_r($xml_data, true));
+
+        $URL = $this->getEndpoint();
+
+        $ch = curl_init($URL);
+
+        if (GATEWAY_BRAND === 'loomis') {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml'));
+        } else {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/soap+xml'));
+        }
+
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, "$xml_data");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        $response = curl_exec($ch);
+        $error_number = curl_errno($ch);
+        $error_message = curl_error($ch);
+
+        $this->log(__METHOD__ . __LINE__ ." response from $URL". $response);
+        // Return an error is cURL has a problem
+        if( $error_message ) {
+            $this->log(__METHOD__ . " Error ". print_r($response,1));
+
+            return array('error_message' => $error_message);
+        }
+
+        curl_close($ch);
+
+        $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $response);
+        $this->log(__METHOD__ . " APi response ". print_r($response,1));
+        $xml = new SimpleXMLElement($response);
+
+        if (GATEWAY_BRAND === 'loomis') {
+            $body = $xml->xpath('////ax29getRatesResult');
+        } else {
+            $body = $xml->xpath('//ax25processShipmentResult');
+        }
+
+        $servicesArray = json_decode(json_encode((array)$body), TRUE);
+
+        $this->log(__METHOD__ . __LINE__  . ' -serviceresponse body ' . print_r($body, true));
+        $this->log(__METHOD__ . __LINE__  . ' -serviceresponse ' . print_r($response, true));
+        $this->log(__METHOD__ . __LINE__  . ' -serviceresponseArray ' . print_r($servicesArray, true));
+
+        if (GATEWAY_BRAND === 'loomis') {
+            $rateArray = $this->get_rate_from_service_item_loomis($servicesArray);
+        } else {
+            $rateArray = $this->get_rate_from_service_item_canpar($servicesArray);
+        }
         return $rateArray;
 
     }
